@@ -266,11 +266,13 @@ export function StudentsManagement() {
         </Card>
 
         {/* Edit Student Dialog */}
-        <EditStudentDialog
-          student={selectedStudent}
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-        />
+        {selectedStudent && (
+          <EditStudentDialog
+            student={selectedStudent}
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+          />
+        )}
       </div>
     </DashboardLayout>
   );

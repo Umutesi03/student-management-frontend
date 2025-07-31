@@ -269,11 +269,13 @@ export function CoursesManagement() {
         </Card>
 
         {/* Edit Course Dialog */}
-        <EditCourseDialog
-          course={selectedCourse}
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-        />
+        {selectedCourse && (
+          <EditCourseDialog
+            course={selectedCourse}
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+          />
+        )}
       </div>
     </DashboardLayout>
   );

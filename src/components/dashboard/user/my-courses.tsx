@@ -1,16 +1,29 @@
-"use client"
+"use client";
 
-import { useQuery } from "@tanstack/react-query"
-import { DashboardLayout } from "../layout/dashboard-layout"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/table"
-import { BookOpen, CalendarDays } from "lucide-react"
-import { coursesApi } from "../../../lib/api"
-import { useAuthStore } from "../../../lib/auth"
-import { toast } from "sonner"
+import { useQuery } from "@tanstack/react-query";
+import { DashboardLayout } from "../layout/dashboard-layout";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../../ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../ui/table";
+import { BookOpen, CalendarDays } from "lucide-react";
+import { coursesApi } from "../../../lib/api";
+import { useAuthStore } from "../../../lib/auth";
+import { toast } from "sonner";
 
 export function MyCourses() {
-  const { token, user } = useAuthStore()
+  const { token, user } = useAuthStore();
 
   const {
     data: studentCourses,
@@ -20,10 +33,10 @@ export function MyCourses() {
     queryKey: ["studentCourses", user?.id],
     queryFn: () => coursesApi.getStudentCourses(user!.id, token!),
     enabled: !!token && !!user?.id,
-  })
+  });
 
   if (error) {
-    toast.error(`Error loading your courses: ${error.message}`)
+    toast.error(`Error loading your courses: ${error.message}`);
   }
 
   return (
@@ -31,13 +44,17 @@ export function MyCourses() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">My Courses</h1>
-          <p className="text-muted-foreground">View the courses you are currently enrolled in.</p>
+          <p className="text-muted-foreground">
+            View the courses you are currently enrolled in.
+          </p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>Enrolled Courses</CardTitle>
-            <CardDescription>A list of all courses you are taking.</CardDescription>
+            <CardDescription>
+              A list of all courses you are taking.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -57,15 +74,26 @@ export function MyCourses() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {studentCourses.map((course: any) => (
-                      <TableRow key={course.id}>
-                        <TableCell className="font-medium">{course.name}</TableCell>
-                        <TableCell>{course.code}</TableCell>
-                        <TableCell>{course.credits}</TableCell>
-                        <TableCell>{course.department || "N/A"}</TableCell>
-                        <TableCell>{course.instructor || "N/A"}</TableCell>
-                      </TableRow>
-                    ))}
+                    {studentCourses.map(
+                      (course: {
+                        id: string;
+                        name: string;
+                        code: string;
+                        credits: number;
+                        department?: string;
+                        instructor?: string;
+                      }) => (
+                        <TableRow key={course.id}>
+                          <TableCell className="font-medium">
+                            {course.name}
+                          </TableCell>
+                          <TableCell>{course.code}</TableCell>
+                          <TableCell>{course.credits}</TableCell>
+                          <TableCell>{course.department || "N/A"}</TableCell>
+                          <TableCell>{course.instructor || "N/A"}</TableCell>
+                        </TableRow>
+                      )
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -82,17 +110,21 @@ export function MyCourses() {
         <Card>
           <CardHeader>
             <CardTitle>Upcoming Deadlines</CardTitle>
-            <CardDescription>Important dates for your enrolled courses.</CardDescription>
+            <CardDescription>
+              Important dates for your enrolled courses.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8 text-muted-foreground">
               <CalendarDays className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
               <p>No upcoming deadlines found.</p>
-              <p className="text-sm">This section can be populated with data from your course API.</p>
+              <p className="text-sm">
+                This section can be populated with data from your course API.
+              </p>
             </div>
           </CardContent>
         </Card>
       </div>
     </DashboardLayout>
-  )
+  );
 }

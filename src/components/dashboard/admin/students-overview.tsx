@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { useQuery } from "@tanstack/react-query"
-import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card"
-import { adminApi } from "../../../lib/api"
-import { useAuthStore } from "../../../lib/auth"
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { adminApi } from "../../../lib/api";
+import { useAuthStore } from "../../../lib/auth";
 
 export function StudentsOverview() {
-  const { token } = useAuthStore()
+  const { token } = useAuthStore();
 
   const { data: students, isLoading } = useQuery({
     queryKey: ["students"],
     queryFn: () => adminApi.getStudents(token!),
     enabled: !!token,
-  })
+  });
 
   if (isLoading) {
     return (
@@ -28,10 +28,10 @@ export function StudentsOverview() {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
-  const recentStudents = students?.slice(0, 5) || []
+  const recentStudents = students?.slice(0, 5) || [];
 
   return (
     <Card>
@@ -40,17 +40,33 @@ export function StudentsOverview() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {recentStudents.map((student: any) => (
-            <div key={student.id} className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">{student.fullName}</p>
-                <p className="text-sm text-muted-foreground">{student.email}</p>
+          {recentStudents.map(
+            (student: {
+              id: string;
+              fullName: string;
+              email: string;
+              phone?: string;
+              address?: string;
+              role?: string;
+            }) => (
+              <div
+                key={student.id}
+                className="flex items-center justify-between"
+              >
+                <div>
+                  <p className="font-medium">{student.fullName}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {student.email}
+                  </p>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {student.role}
+                </div>
               </div>
-              <div className="text-sm text-muted-foreground">{student.role}</div>
-            </div>
-          ))}
+            )
+          )}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

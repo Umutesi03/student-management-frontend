@@ -1,9 +1,8 @@
-import { toast as sonnerToast } from "sonner"
+import { toast as sonnerToast } from "sonner";
 
 export function useToast() {
   return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    toast: (options: any) => sonnerToast(options),
+    toast: (options: Parameters<typeof sonnerToast>[0]) => sonnerToast(options),
     dismiss: sonnerToast.dismiss,
-  }
+  };
 }
