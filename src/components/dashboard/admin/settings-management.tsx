@@ -46,7 +46,7 @@ const passwordFormSchema = z
     confirmNewPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmNewPassword, {
-    message: "New passwords don't match",
+    message: "New passwords do not match",
     path: ["confirmNewPassword"],
   });
 
@@ -118,8 +118,7 @@ export function SettingsManagement() {
 
   const changePasswordMutation = useMutation({
     mutationFn: async (data: z.infer<typeof passwordFormSchema>) => {
-      // This is a placeholder. You would typically have a dedicated API endpoint for password change.
-      // For now, we'll simulate a successful change.
+      
       console.log("Changing password with data:", data);
       return new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
     },
