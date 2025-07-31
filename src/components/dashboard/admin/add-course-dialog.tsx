@@ -1,32 +1,49 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../../ui/dialog"
-import { Button } from "../../ui/button"
-import { Input } from "../../ui/input"
-import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from "../../ui/form"
-import { Plus } from "lucide-react"
-import { coursesApi } from "../../../lib/api"
-import { useAuthStore } from "../../../lib/auth"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../ui/dialog";
+import { Button } from "../../ui/button";
+import { Input } from "../../ui/input";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormControl,
+  FormLabel,
+  FormMessage,
+} from "../../ui/form";
+import { Plus } from "lucide-react";
+import { coursesApi } from "../../../lib/api";
+import { useAuthStore } from "../../../lib/auth";
 
 const addCourseSchema = z.object({
   name: z.string().min(2, "Course name is required"),
   code: z.string().min(2, "Course code is required"),
-  credits: z.number().min(1, "Credits must be at least 1").max(10, "Credits cannot exceed 10"),
+  credits: z
+    .number()
+    .min(1, "Credits must be at least 1")
+    .max(10, "Credits cannot exceed 10"),
   description: z.string().optional(),
   department: z.string().optional(),
   instructor: z.string().optional(),
-})
+});
 
 export function AddCourseDialog() {
-  const [open, setOpen] = useState(false)
-  const { token } = useAuthStore()
-  const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false);
+  const { token } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof addCourseSchema>>({
     resolver: zodResolver(addCourseSchema),
@@ -38,24 +55,31 @@ export function AddCourseDialog() {
       department: "",
       instructor: "",
     },
-  })
+  });
 
   const addCourseMutation = useMutation({
-    mutationFn: (data: z.infer<typeof addCourseSchema>) => coursesApi.createCourse(data, token!),
+    mutationFn: (data: z.infer<typeof addCourseSchema>) =>
+      coursesApi.createCourse(data, token!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["courses"] })
-      toast.success("Course created successfully")
-      setOpen(false)
-      form.reset()
+      queryClient.invalidateQueries({ queryKey: ["courses"] });
+      toast.success("Course created successfully");
+      setOpen(false);
+      form.reset();
     },
-    onError: (error: any) => {
-      toast.error(error.message || "Failed to create course")
+    onError: (error: unknown) => {
+      if (error && typeof error === "object" && "message" in error) {
+        toast.error(
+          (error as { message?: string }).message || "Failed to create course"
+        );
+      } else {
+        toast.error("Failed to create course");
+      }
     },
-  })
+  });
 
   const onSubmit = (data: z.infer<typeof addCourseSchema>) => {
-    addCourseMutation.mutate(data)
-  }
+    addCourseMutation.mutate(data);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -68,7 +92,9 @@ export function AddCourseDialog() {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Add New Course</DialogTitle>
-          <DialogDescription>Create a new course for your institution.</DialogDescription>
+          <DialogDescription>
+            Create a new course for your institution.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -80,7 +106,10 @@ export function AddCourseDialog() {
                   <FormItem>
                     <FormLabel>Course Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Introduction to Computer Science" {...field} />
+                      <Input
+                        placeholder="e.g., Introduction to Computer Science"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -112,7 +141,9 @@ export function AddCourseDialog() {
                         type="number"
                         placeholder="3"
                         {...field}
-                        onChange={(e) => field.onChange(Number.parseInt(e.target.value) || 0)}
+                        onChange={(e) =>
+                          field.onChange(Number.parseInt(e.target.value) || 0)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -153,14 +184,21 @@ export function AddCourseDialog() {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input placeholder="Course description (optional)" {...field} />
+                    <Input
+                      placeholder="Course description (optional)"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={addCourseMutation.isPending}>
@@ -171,5 +209,5 @@ export function AddCourseDialog() {
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

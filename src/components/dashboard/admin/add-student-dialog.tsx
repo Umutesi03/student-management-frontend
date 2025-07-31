@@ -1,31 +1,45 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../../ui/dialog"
-import { Button } from "../../ui/button"
-import { Input } from "../../ui/input"
-import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from "../../ui/form"
-import { PasswordInput } from "../../ui/password-input"
-import { Plus } from "lucide-react"
-import { authApi } from "../../../lib/api"
-import { useAuthStore } from "../../../lib/auth"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../ui/dialog";
+import { Button } from "../../ui/button";
+import { Input } from "../../ui/input";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormControl,
+  FormLabel,
+  FormMessage,
+} from "../../ui/form";
+import { PasswordInput } from "../../ui/password-input";
+import { Plus } from "lucide-react";
+import { authApi } from "../../../lib/api";
+import { useAuthStore } from "../../../lib/auth";
 
 const addStudentSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
   email: z.string().email("Enter a valid email"),
   phone: z.string().min(10, "Phone number is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-})
+});
 
 export function AddStudentDialog() {
-  const [open, setOpen] = useState(false)
-  const { token } = useAuthStore()
-  const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false);
+  const { token } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof addStudentSchema>>({
     resolver: zodResolver(addStudentSchema),
@@ -35,24 +49,31 @@ export function AddStudentDialog() {
       phone: "",
       password: "",
     },
-  })
+  });
 
   const addStudentMutation = useMutation({
-    mutationFn: (data: z.infer<typeof addStudentSchema>) => authApi.register(data),
+    mutationFn: (data: z.infer<typeof addStudentSchema>) =>
+      authApi.register(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["students"] })
-      toast.success("Student added successfully")
-      setOpen(false)
-      form.reset()
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      toast.success("Student added successfully");
+      setOpen(false);
+      form.reset();
     },
-    onError: (error: any) => {
-      toast.error(error.message || "Failed to add student")
+    onError: (error: unknown) => {
+      if (error && typeof error === "object" && "message" in error) {
+        toast.error(
+          (error as { message?: string }).message || "Failed to add student"
+        );
+      } else {
+        toast.error("Failed to add student");
+      }
     },
-  })
+  });
 
   const onSubmit = (data: z.infer<typeof addStudentSchema>) => {
-    addStudentMutation.mutate(data)
-  }
+    addStudentMutation.mutate(data);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -66,7 +87,8 @@ export function AddStudentDialog() {
         <DialogHeader>
           <DialogTitle>Add New Student</DialogTitle>
           <DialogDescription>
-            Create a new student account. The student will need to verify their email.
+            Create a new student account. The student will need to verify their
+            email.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -124,7 +146,11 @@ export function AddStudentDialog() {
               )}
             />
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={addStudentMutation.isPending}>
@@ -135,5 +161,5 @@ export function AddStudentDialog() {
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

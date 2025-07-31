@@ -75,7 +75,13 @@ export const adminApi = {
     return response.json()
   },
 
-  updateStudent: async (id: string, data: any, token: string) => {
+  /**
+   * Update a student record
+   * @param id Student ID
+   * @param data Student update payload
+   * @param token Auth token
+   */
+  updateStudent: async (id: string, data: unknown, token: string) => {
     const response = await fetch(`${API_BASE_URL}/admin/students/${id}`, {
       method: "PUT",
       headers: {
@@ -170,7 +176,13 @@ export const coursesApi = {
     return response.json()
   },
 
-  updateCourse: async (id: string, data: any, token: string) => {
+  /**
+   * Update a course record
+   * @param id Course ID
+   * @param data Course update payload
+   * @param token Auth token
+   */
+  updateCourse: async (id: string, data: unknown, token: string) => {
     const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
       method: "PUT",
       headers: {
@@ -250,7 +262,12 @@ export const studentApi = {
     return response.json()
   },
 
-  updateProfile: async (data: any, token: string) => {
+  /**
+   * Update a user profile
+   * @param data Profile update payload
+   * @param token Auth token
+   */
+  updateProfile: async (data: unknown, token: string) => {
     const response = await fetch(`${API_BASE_URL}/student/me`, {
       method: "PUT",
       headers: {
