@@ -1,20 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { DashboardLayout } from "../layout/dashboard-layout";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../ui/table";
+import { DataTable } from "@/components/data-table/data-table";
+import { useDataTable } from "@/hooks/use-data-table";
+import type { ColumnDef } from "@tanstack/react-table";
+import { getPaginationRowModel } from "@tanstack/react-table";
 import { Badge } from "../../ui/badge";
 import { Search, Eye, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { adminApi } from "../../../lib/api";
@@ -27,8 +23,7 @@ export function StudentsManagement() {
   const { token } = useAuthStore();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(25);
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 25 });
   type Student = {
     id: string;
     fullName: string;
@@ -75,10 +70,88 @@ export function StudentsManagement() {
         student.email?.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
 
-  const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const currentStudents = filteredStudents.slice(startIndex, endIndex);
+  const pageCount = Math.ceil(filteredStudents.length / pagination.pageSize);
+
+  const columns: ColumnDef<Student>[] = [
+    {
+      accessorKey: "id",
+      header: () => <span className="text-slate-300">User ID</span>,
+      cell: (info) => (
+        <span className="text-slate-300">{info.getValue() as string}</span>
+      ),
+    },
+
+    {
+      accessorKey: "fullName",
+      header: () => <span className="text-slate-300">Name</span>,
+      cell: (info) => (
+        <span className="font-medium text-white">
+          {info.getValue() as string}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "email",
+      header: () => <span className="text-slate-300">Email</span>,
+      cell: (info) => (
+        <span className="text-slate-300">{info.getValue() as string}</span>
+      ),
+    },
+    {
+      accessorKey: "phone",
+      header: () => <span className="text-slate-300">Phone</span>,
+      cell: (info) => (
+        <span className="text-slate-300">{info.getValue() as string}</span>
+      ),
+    },
+    {
+      accessorKey: "address",
+      header: () => <span className="text-slate-300">Address</span>,
+      cell: (info) => (
+        <span className="text-slate-300">{info.getValue() as string}</span>
+      ),
+    },
+    {
+      accessorKey: "role",
+      header: () => <span className="text-slate-300">Role</span>,
+      cell: (info) => (
+        <span className="text-slate-300">{info.getValue() as string}</span>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <span className="text-slate-300">Actions</span>,
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => handleEditStudent(row.original)}
+          >
+            <Eye className="h-4 w-4 text-emerald-500" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => deleteStudentMutation.mutate(row.original.id)}
+          >
+            <Trash2 className="h-4 w-4 text-red-500" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  // Create the table instance for DataTable
+  const { table } = useDataTable({
+    data: filteredStudents,
+    columns,
+    pageCount,
+    state: { pagination },
+    onPaginationChange: setPagination,
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {},
+  });
 
   return (
     <DashboardLayout userType="admin">
@@ -121,139 +194,9 @@ export function StudentsManagement() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
               </div>
             ) : (
-              <>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-slate-700 hover:bg-slate-700/50">
-                        <TableHead className="text-slate-300">
-                          User ID
-                        </TableHead>
-                        <TableHead className="text-slate-300">Name</TableHead>
-                        <TableHead className="text-slate-300">Email</TableHead>
-                        <TableHead className="text-slate-300">Phone</TableHead>
-                        <TableHead className="text-slate-300">
-                          Address
-                        </TableHead>
-                        <TableHead className="text-slate-300">Role</TableHead>
-                        <TableHead className="text-slate-300">
-                          Actions
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {currentStudents.map(
-                        (student: Student, index: number) => (
-                          <TableRow
-                            key={student.id}
-                            className="border-slate-700 hover:bg-slate-700/30"
-                          >
-                            <TableCell className="text-slate-300">
-                              {startIndex + index + 1}
-                            </TableCell>
-                            <TableCell className="font-medium text-white">
-                              {student.fullName}
-                            </TableCell>
-                            <TableCell className="text-slate-300">
-                              {student.email}
-                            </TableCell>
-                            <TableCell className="text-slate-300">
-                              {student.phone || "N/A"}
-                            </TableCell>
-                            <TableCell className="text-slate-300">
-                              N/A
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={
-                                  student.role === "admin"
-                                    ? "default"
-                                    : "secondary"
-                                }
-                                className={
-                                  student.role === "admin"
-                                    ? "bg-emerald-500 text-white"
-                                    : "bg-slate-600 text-slate-200"
-                                }
-                              >
-                                {student.role}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  size="icon"
-                                  className="h-8 w-8 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white"
-                                  onClick={() => handleEditStudent(student)}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  className="h-8 w-8 rounded-full bg-red-500 hover:bg-red-600 text-white"
-                                  onClick={() =>
-                                    deleteStudentMutation.mutate(student.id)
-                                  }
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {/* Pagination */}
-                <div className="flex items-center justify-between px-6 py-4 border-t border-slate-700">
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <span>Rows Per page:</span>
-                    <select
-                      value={rowsPerPage}
-                      onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                      className="bg-slate-700 border-slate-600 text-white rounded px-2 py-1"
-                    >
-                      <option value={10}>10</option>
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <span className="text-slate-400">
-                      {startIndex + 1}-
-                      {Math.min(endIndex, filteredStudents.length)} of{" "}
-                      {filteredStudents.length}
-                    </span>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700"
-                        onClick={() =>
-                          setCurrentPage(Math.max(1, currentPage - 1))
-                        }
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700"
-                        onClick={() =>
-                          setCurrentPage(Math.min(totalPages, currentPage + 1))
-                        }
-                        disabled={currentPage === totalPages}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </>
+              <div className="overflow-x-auto">
+                <DataTable table={table} />
+              </div>
             )}
             {filteredStudents.length === 0 && !isLoading && (
               <div className="text-center py-8 text-slate-400">

@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 
 import { DashboardLayout } from "../layout/dashboard-layout";
 import {
@@ -9,14 +10,10 @@ import {
   CardDescription,
 } from "../../ui/card";
 import { Button } from "../../ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../ui/table";
+import { DataTable } from "@/components/data-table/data-table";
+import { useDataTable } from "@/hooks/use-data-table";
+import type { ColumnDef } from "@tanstack/react-table";
+import { getPaginationRowModel } from "@tanstack/react-table";
 import {
   FileText,
   Download,
@@ -27,6 +24,11 @@ import {
 } from "lucide-react";
 
 export function ReportsManagement() {
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
   // Dummy data for recent reports
   const recentReports = [
     {
@@ -58,6 +60,65 @@ export function ReportsManagement() {
       status: "Pending",
     },
   ];
+
+  type Report = (typeof recentReports)[number];
+
+  const columns: ColumnDef<Report>[] = [
+    {
+      accessorKey: "id",
+      header: () => <span className="text-slate-300">Report ID</span>,
+      cell: (info) => (
+        <span className="font-medium">{info.getValue() as string}</span>
+      ),
+    },
+    {
+      accessorKey: "name",
+      header: () => <span className="text-slate-300">Name</span>,
+      cell: (info) => <span>{info.getValue() as string}</span>,
+    },
+    {
+      accessorKey: "type",
+      header: () => <span className="text-slate-300">Type</span>,
+      cell: (info) => <span>{info.getValue() as string}</span>,
+    },
+    {
+      accessorKey: "date",
+      header: () => <span className="text-slate-300">Date Generated</span>,
+      cell: (info) => <span>{info.getValue() as string}</span>,
+    },
+    {
+      accessorKey: "status",
+      header: () => <span className="text-slate-300">Status</span>,
+      cell: (info) => <span>{info.getValue() as string}</span>,
+    },
+    {
+      id: "actions",
+      header: () => <span className="text-slate-300">Actions</span>,
+      cell: ({ row }) => (
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" size="icon" className="mr-2">
+            <Download className="h-4 w-4" />
+            <span className="sr-only">Download</span>
+          </Button>
+          <Button variant="ghost" size="icon">
+            <Printer className="h-4 w-4" />
+            <span className="sr-only">Print</span>
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const pageCount = Math.ceil(recentReports.length / pagination.pageSize);
+  const { table } = useDataTable({
+    data: recentReports,
+    columns,
+    pageCount,
+    state: { pagination },
+    onPaginationChange: setPagination,
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {},
+  });
 
   return (
     <DashboardLayout userType="admin">
@@ -111,53 +172,19 @@ export function ReportsManagement() {
           </Card>
 
           {/* Recent Reports */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Recent Reports</CardTitle>
-              <CardDescription>
+          <Card className="lg:col-span-2 bg-slate-800 border-slate-700">
+            <CardHeader className="border-b border-slate-700">
+              <CardTitle className="text-white">Recent Reports</CardTitle>
+              <CardDescription className="text-slate-400">
                 View and manage recently generated reports.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Report ID</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Date Generated</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentReports.map((report) => (
-                      <TableRow key={report.id}>
-                        <TableCell className="font-medium">
-                          {report.id}
-                        </TableCell>
-                        <TableCell>{report.name}</TableCell>
-                        <TableCell>{report.type}</TableCell>
-                        <TableCell>{report.date}</TableCell>
-                        <TableCell>{report.status}</TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" className="mr-2">
-                            <Download className="h-4 w-4" />
-                            <span className="sr-only">Download</span>
-                          </Button>
-                          <Button variant="ghost" size="icon">
-                            <Printer className="h-4 w-4" />
-                            <span className="sr-only">Print</span>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataTable table={table} />
               </div>
               {recentReports.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-center py-8 text-slate-400">
                   No recent reports found.
                 </div>
               )}

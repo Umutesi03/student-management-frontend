@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://student-management-backend-0ef8.onrender.com/api"
+export const API_BASE_URL = "https://student-management-backend-0ef8.onrender.com/api"
 
 // Auth API
 export const authApi = {
