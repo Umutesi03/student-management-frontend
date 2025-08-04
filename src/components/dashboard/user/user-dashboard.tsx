@@ -3,16 +3,52 @@
 import { DashboardLayout } from "../layout/dashboard-layout";
 import { StatsCards } from "../shared/stats-cards";
 import { RecentActivity } from "../shared/recent-activity";
-import { UserProfile } from "./user-profile";
 import { AcademicProgress } from "./academic-progress";
+import { MyCoursesTable } from "./my-courses-table";
+
+import { useQuery } from "@tanstack/react-query";
+import { useAuthStore } from "../../../lib/auth";
+import { api } from "../../../lib/axios";
 import { BookOpen, Calendar, Award, Clock } from "lucide-react";
 
 export function UserDashboard() {
+  const token = useAuthStore((state) => state.token);
+
+  const {
+    data: courses,
+    isLoading: coursesLoading,
+    isError: coursesError,
+  } = useQuery({
+    queryKey: ["student-courses", token],
+    enabled: !!token,
+    queryFn: async () => {
+      const res = await api.get("/student/me/courses", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data;
+    },
+  });
+
+  const {
+    data: activities,
+    isLoading: activitiesLoading,
+    isError: activitiesError,
+  } = useQuery({
+    queryKey: ["student-activities", token],
+    enabled: !!token,
+    queryFn: async () => {
+      const res = await api.get("/student/me/activities", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data;
+    },
+  });
+
   const stats = [
     {
       title: "Enrolled Courses",
-      value: "6",
-      change: "+1",
+      value: courses ? courses.length : "-",
+      change: courses ? `+${courses.length}` : "-",
       trend: "up" as const,
       icon: BookOpen,
     },
@@ -39,6 +75,24 @@ export function UserDashboard() {
     },
   ];
 
+  if (coursesLoading || activitiesLoading) {
+    return (
+      <DashboardLayout userType="user">
+        <div className="flex items-center justify-center h-64">Loading...</div>
+      </DashboardLayout>
+    );
+  }
+
+  if (coursesError || activitiesError) {
+    return (
+      <DashboardLayout userType="user">
+        <div className="flex items-center justify-center h-64 text-red-500">
+          Error loading data.
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout userType="user">
       <div className="space-y-6">
@@ -53,11 +107,9 @@ export function UserDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <AcademicProgress />
-            <RecentActivity />
-          </div>
-          <div>
-            <UserProfile />
+            <AcademicProgress courses={courses || []} />
+            <MyCoursesTable courses={courses || []} />
+            {activities && <RecentActivity activities={activities} />}
           </div>
         </div>
       </div>

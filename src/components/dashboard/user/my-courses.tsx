@@ -9,16 +9,10 @@ import {
   CardTitle,
   CardDescription,
 } from "../../ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../ui/table";
+// ...existing code...
+import { MyCoursesTable } from "./my-courses-table";
 import { BookOpen, CalendarDays } from "lucide-react";
-import { coursesApi } from "../../../lib/api";
+import { api } from "../../../lib/axios";
 import { useAuthStore } from "../../../lib/auth";
 import { toast } from "sonner";
 
@@ -30,9 +24,14 @@ export function MyCourses() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["studentCourses", user?.id],
-    queryFn: () => coursesApi.getStudentCourses(user!.id, token!),
-    enabled: !!token && !!user?.id,
+    queryKey: ["studentCourses", token],
+    enabled: !!token,
+    queryFn: async () => {
+      const res = await api.get("/student/me/courses", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data;
+    },
   });
 
   if (error) {
@@ -50,53 +49,14 @@ export function MyCourses() {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Enrolled Courses</CardTitle>
-            <CardDescription>
-              A list of all courses you are taking.
-            </CardDescription>
-          </CardHeader>
+  
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
             ) : studentCourses && studentCourses.length > 0 ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Course Name</TableHead>
-                      <TableHead>Course Code</TableHead>
-                      <TableHead>Credits</TableHead>
-                      <TableHead>Department</TableHead>
-                      <TableHead>Instructor</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {studentCourses.map(
-                      (course: {
-                        id: string;
-                        name: string;
-                        code: string;
-                        credits: number;
-                        department?: string;
-                        instructor?: string;
-                      }) => (
-                        <TableRow key={course.id}>
-                          <TableCell className="font-medium">
-                            {course.name}
-                          </TableCell>
-                          <TableCell>{course.code}</TableCell>
-                          <TableCell>{course.credits}</TableCell>
-                          <TableCell>{course.department || "N/A"}</TableCell>
-                          <TableCell>{course.instructor || "N/A"}</TableCell>
-                        </TableRow>
-                      )
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+              <MyCoursesTable courses={studentCourses} />
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />

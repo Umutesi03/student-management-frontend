@@ -1,50 +1,38 @@
-import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card"
-import { Badge } from "../../ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { Badge } from "../../ui/badge";
 
-export function RecentActivity() {
-  const activities = [
-    {
-      id: 1,
-      action: "New student enrolled",
-      user: "John Doe",
-      time: "2 hours ago",
-      type: "enrollment",
-    },
-    {
-      id: 2,
-      action: "Course updated",
-      user: "Jane Smith",
-      time: "4 hours ago",
-      type: "course",
-    },
-    {
-      id: 3,
-      action: "Grade submitted",
-      user: "Mike Johnson",
-      time: "6 hours ago",
-      type: "grade",
-    },
-    {
-      id: 4,
-      action: "Student profile updated",
-      user: "Sarah Wilson",
-      time: "1 day ago",
-      type: "profile",
-    },
-  ]
+type Activity = {
+  id: number;
+  type: string;
+  description: string;
+  createdAt: string;
+  courseId: number | null;
+  userId: number;
+  courseName: string | null;
+  userFullName: string;
+};
 
+function formatTime(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+}
+
+export function RecentActivity({ activities }: { activities: Activity[] }) {
   const getActivityColor = (type: string) => {
     switch (type) {
-      case "enrollment":
-        return "default"
-      case "course":
-        return "secondary"
-      case "grade":
-        return "outline"
+      case "course_enrollment":
+        return "default";
+      case "profile_update":
+        return "secondary";
       default:
-        return "secondary"
+        return "secondary";
     }
-  }
+  };
 
   return (
     <Card>
@@ -54,19 +42,28 @@ export function RecentActivity() {
       <CardContent>
         <div className="space-y-4">
           {activities.map((activity) => (
-            <div key={activity.id} className="flex items-center justify-between">
+            <div
+              key={activity.id}
+              className="flex items-center justify-between"
+            >
               <div className="space-y-1">
-                <p className="text-sm font-medium">{activity.action}</p>
-                <p className="text-xs text-muted-foreground">{activity.user}</p>
+                <p className="text-sm font-medium">{activity.description}</p>
+                <p className="text-xs text-muted-foreground">
+                  {activity.userFullName}
+                </p>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant={getActivityColor(activity.type)}>{activity.type}</Badge>
-                <span className="text-xs text-muted-foreground">{activity.time}</span>
+                <Badge variant={getActivityColor(activity.type)}>
+                  {activity.type}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {formatTime(activity.createdAt)}
+                </span>
               </div>
             </div>
           ))}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

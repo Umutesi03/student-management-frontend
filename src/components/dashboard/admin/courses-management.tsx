@@ -1,6 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { DataTable } from "@/components/data-table/data-table";
+import { useDataTable } from "@/hooks/use-data-table";
+import type { ColumnDef } from "@tanstack/react-table";
+import { getPaginationRowModel } from "@tanstack/react-table";
 
 type Course = {
   id: string;
@@ -35,8 +39,7 @@ export function CoursesManagement() {
   const { token } = useAuthStore();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(25);
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 25 });
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
@@ -79,10 +82,91 @@ export function CoursesManagement() {
         course.code?.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
 
-  const totalPages = Math.ceil(filteredCourses.length / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const currentCourses = filteredCourses.slice(startIndex, endIndex);
+  const pageCount = Math.ceil(filteredCourses.length / pagination.pageSize);
+
+  const columns: ColumnDef<Course>[] = [
+    {
+      accessorKey: "id",
+      header: () => <span className="text-slate-300">Course ID</span>,
+      cell: (info) => (
+        <span className="text-slate-300">{info.getValue() as string}</span>
+      ),
+    },
+    {
+      accessorKey: "name",
+      header: () => <span className="text-slate-300">Course Name</span>,
+      cell: (info) => (
+        <span className="font-medium text-white">
+          {info.getValue() as string}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "code",
+      header: () => <span className="text-slate-300">Course Code</span>,
+      cell: (info) => (
+        <span className="text-slate-300">{info.getValue() as string}</span>
+      ),
+    },
+    {
+      accessorKey: "credits",
+      header: () => <span className="text-slate-300">Credits</span>,
+      cell: (info) => (
+        <span className="text-slate-300">{info.getValue() as number}</span>
+      ),
+    },
+    {
+      accessorKey: "department",
+      header: () => <span className="text-slate-300">Department</span>,
+      cell: (info) => (
+        <span className="text-slate-300">
+          {(info.getValue() as string) || "N/A"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "instructor",
+      header: () => <span className="text-slate-300">Instructor</span>,
+      cell: (info) => (
+        <span className="text-slate-300">
+          {(info.getValue() as string) || "N/A"}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <span className="text-slate-300">Actions</span>,
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => handleEditCourse(row.original)}
+          >
+            <Eye className="h-4 w-4 text-emerald-500" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => deleteCourseMutation.mutate(row.original.id)}
+          >
+            <Trash2 className="h-4 w-4 text-red-500" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  // Create the table instance for DataTable
+  const { table } = useDataTable({
+    data: filteredCourses,
+    columns,
+    pageCount,
+    state: { pagination },
+    onPaginationChange: setPagination,
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {},
+  });
 
   if (error) {
     toast.error(
@@ -131,132 +215,9 @@ export function CoursesManagement() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
               </div>
             ) : (
-              <>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-slate-700 hover:bg-slate-700/50">
-                        <TableHead className="text-slate-300">
-                          Course ID
-                        </TableHead>
-                        <TableHead className="text-slate-300">
-                          Course Name
-                        </TableHead>
-                        <TableHead className="text-slate-300">
-                          Course Code
-                        </TableHead>
-                        <TableHead className="text-slate-300">
-                          Credits
-                        </TableHead>
-                        <TableHead className="text-slate-300">
-                          Department
-                        </TableHead>
-                        <TableHead className="text-slate-300">
-                          Instructor
-                        </TableHead>
-                        <TableHead className="text-slate-300">
-                          Actions
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {currentCourses.map((course: Course, index: number) => (
-                        <TableRow
-                          key={course.id}
-                          className="border-slate-700 hover:bg-slate-700/30"
-                        >
-                          <TableCell className="text-slate-300">
-                            {startIndex + index + 1}
-                          </TableCell>
-                          <TableCell className="font-medium text-white">
-                            {course.name}
-                          </TableCell>
-                          <TableCell className="text-slate-300">
-                            {course.code}
-                          </TableCell>
-                          <TableCell className="text-slate-300">
-                            {course.credits}
-                          </TableCell>
-                          <TableCell className="text-slate-300">
-                            {course.department || "N/A"}
-                          </TableCell>
-                          <TableCell className="text-slate-300">
-                            {course.instructor || "N/A"}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                size="icon"
-                                className="h-8 w-8 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white"
-                                onClick={() => handleEditCourse(course)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="icon"
-                                className="h-8 w-8 rounded-full bg-red-500 hover:bg-red-600 text-white"
-                                onClick={() =>
-                                  deleteCourseMutation.mutate(course.id)
-                                }
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {/* Pagination */}
-                <div className="flex items-center justify-between px-6 py-4 border-t border-slate-700">
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <span>Rows Per page:</span>
-                    <select
-                      value={rowsPerPage}
-                      onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                      className="bg-slate-700 border-slate-600 text-white rounded px-2 py-1"
-                    >
-                      <option value={10}>10</option>
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <span className="text-slate-400">
-                      {startIndex + 1}-
-                      {Math.min(endIndex, filteredCourses.length)} of{" "}
-                      {filteredCourses.length}
-                    </span>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700"
-                        onClick={() =>
-                          setCurrentPage(Math.max(1, currentPage - 1))
-                        }
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700"
-                        onClick={() =>
-                          setCurrentPage(Math.min(totalPages, currentPage + 1))
-                        }
-                        disabled={currentPage === totalPages}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </>
+              <div className="overflow-x-auto">
+                <DataTable table={table} />
+              </div>
             )}
             {filteredCourses.length === 0 && !isLoading && (
               <div className="text-center py-8 text-slate-400">
