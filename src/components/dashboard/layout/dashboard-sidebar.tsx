@@ -5,7 +5,17 @@ import { usePathname } from "next/navigation"
 import { cn } from "../../../lib/utils"
 import { Button } from "../../ui/button"
 import { useAuthStore } from "../../../lib/auth"
-import { LayoutDashboard, Users, BookOpen, Settings, User, BarChart3, Calendar, FileText, LogOut } from "lucide-react"
+import { 
+  LayoutDashboard, 
+  Users, 
+  BookOpen, 
+  Settings, 
+  User, 
+  BarChart3, 
+  Calendar, 
+  FileText, 
+  LogOut 
+} from "lucide-react"
 
 interface DashboardSidebarProps {
   userType: "admin" | "user"

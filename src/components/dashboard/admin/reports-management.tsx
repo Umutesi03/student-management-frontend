@@ -1,198 +1,149 @@
-"use client";
-import React from "react";
+"use client"
 
-import { DashboardLayout } from "../layout/dashboard-layout";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "../../ui/card";
-import { Button } from "../../ui/button";
-import { DataTable } from "@/components/data-table/data-table";
-import { useDataTable } from "@/hooks/use-data-table";
-import type { ColumnDef } from "@tanstack/react-table";
-import { getPaginationRowModel } from "@tanstack/react-table";
-import {
-  FileText,
-  Download,
-  Printer,
-  Users,
-  BookOpen,
-  CalendarDays,
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card"
+import { Button } from "../../ui/button"
+import { Badge } from "../../ui/badge"
+import { FileText, Download, Calendar, Filter } from "lucide-react"
 
 export function ReportsManagement() {
-  const [pagination, setPagination] = React.useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-
-  // Dummy data for recent reports
-  const recentReports = [
-    {
-      id: "RPT001",
-      name: "Student Enrollment Summary (Q1 2024)",
-      type: "Student",
-      date: "2024-03-31",
-      status: "Completed",
-    },
-    {
-      id: "RPT002",
-      name: "Course Performance Analysis (Spring 2023)",
-      type: "Course",
-      date: "2023-06-15",
-      status: "Completed",
-    },
-    {
-      id: "RPT003",
-      name: "Attendance Overview (March 2024)",
-      type: "Attendance",
-      date: "2024-04-01",
-      status: "Completed",
-    },
-    {
-      id: "RPT004",
-      name: "Faculty Workload Report",
-      type: "Faculty",
-      date: "2024-02-28",
-      status: "Pending",
-    },
-  ];
-
-  type Report = (typeof recentReports)[number];
-
-  const columns: ColumnDef<Report>[] = [
-    {
-      accessorKey: "id",
-      header: () => <span className="text-slate-300">Report ID</span>,
-      cell: (info) => (
-        <span className="font-medium">{info.getValue() as string}</span>
-      ),
-    },
-    {
-      accessorKey: "name",
-      header: () => <span className="text-slate-300">Name</span>,
-      cell: (info) => <span>{info.getValue() as string}</span>,
-    },
-    {
-      accessorKey: "type",
-      header: () => <span className="text-slate-300">Type</span>,
-      cell: (info) => <span>{info.getValue() as string}</span>,
-    },
-    {
-      accessorKey: "date",
-      header: () => <span className="text-slate-300">Date Generated</span>,
-      cell: (info) => <span>{info.getValue() as string}</span>,
-    },
-    {
-      accessorKey: "status",
-      header: () => <span className="text-slate-300">Status</span>,
-      cell: (info) => <span>{info.getValue() as string}</span>,
-    },
-    {
-      id: "actions",
-      header: () => <span className="text-slate-300">Actions</span>,
-      cell: ({ row }) => (
-        <div className="flex justify-end gap-2">
-          <Button variant="ghost" size="icon" className="mr-2">
-            <Download className="h-4 w-4" />
-            <span className="sr-only">Download</span>
-          </Button>
-          <Button variant="ghost" size="icon">
-            <Printer className="h-4 w-4" />
-            <span className="sr-only">Print</span>
-          </Button>
-        </div>
-      ),
-    },
-  ];
-
-  const pageCount = Math.ceil(recentReports.length / pagination.pageSize);
-  const { table } = useDataTable({
-    data: recentReports,
-    columns,
-    pageCount,
-    state: { pagination },
-    onPaginationChange: setPagination,
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: {},
-  });
-
   return (
-    <DashboardLayout userType="admin">
+    <div className="container mx-auto p-6">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Reports Management</h1>
-          <p className="text-muted-foreground">
-            Generate and manage various reports for your institution.
-          </p>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Reports Management
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">
+              Generate and manage system reports
+            </p>
+          </div>
+          
+          <Button>
+            <FileText className="h-4 w-4 mr-2" />
+            Generate Report
+          </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Generate New Report */}
-          <Card className="lg:col-span-1">
+        {/* Report Types */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Card>
             <CardHeader>
-              <CardTitle>Generate New Report</CardTitle>
-              <CardDescription>
-                Select a report type to generate a new report.
-              </CardDescription>
+              <CardTitle className="flex items-center space-x-2">
+                <FileText className="h-5 w-5" />
+                <span>Student Reports</span>
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-3 bg-transparent"
-              >
-                <Users className="h-4 w-4" />
-                Student Reports
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-3 bg-transparent"
-              >
-                <BookOpen className="h-4 w-4" />
-                Course Reports
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-3 bg-transparent"
-              >
-                <CalendarDays className="h-4 w-4" />
-                Attendance Reports
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-3 bg-transparent"
-              >
-                <FileText className="h-4 w-4" />
-                Financial Reports
-              </Button>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Generate comprehensive student enrollment and performance reports.
+              </p>
+              <div className="space-y-2">
+                <Button variant="outline" className="w-full justify-start">
+                  <Download className="h-4 w-4 mr-2" />
+                  Student Roster
+                </Button>
+                <Button variant="outline" className="w-full justify-start">
+                  <Download className="h-4 w-4 mr-2" />
+                  Enrollment Report
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Recent Reports */}
-          <Card className="lg:col-span-2 bg-slate-800 border-slate-700">
-            <CardHeader className="border-b border-slate-700">
-              <CardTitle className="text-white">Recent Reports</CardTitle>
-              <CardDescription className="text-slate-400">
-                View and manage recently generated reports.
-              </CardDescription>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <FileText className="h-5 w-5" />
+                <span>Course Reports</span>
+              </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <DataTable table={table} />
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Generate detailed course statistics and enrollment data.
+              </p>
+              <div className="space-y-2">
+                <Button variant="outline" className="w-full justify-start">
+                  <Download className="h-4 w-4 mr-2" />
+                  Course Catalog
+                </Button>
+                <Button variant="outline" className="w-full justify-start">
+                  <Download className="h-4 w-4 mr-2" />
+                  Enrollment Stats
+                </Button>
               </div>
-              {recentReports.length === 0 && (
-                <div className="text-center py-8 text-slate-400">
-                  No recent reports found.
-                </div>
-              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <FileText className="h-5 w-5" />
+                <span>System Reports</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Generate system usage and performance reports.
+              </p>
+              <div className="space-y-2">
+                <Button variant="outline" className="w-full justify-start">
+                  <Download className="h-4 w-4 mr-2" />
+                  Usage Statistics
+                </Button>
+                <Button variant="outline" className="w-full justify-start">
+                  <Download className="h-4 w-4 mr-2" />
+                  Activity Log
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Recent Reports */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Recent Reports</CardTitle>
+            <Button variant="outline" size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[
+                { name: "Student Enrollment Report", date: "2025-08-06", type: "Student", status: "Ready" },
+                { name: "Course Statistics Q3", date: "2025-08-05", type: "Course", status: "Generating" },
+                { name: "System Usage Report", date: "2025-08-04", type: "System", status: "Ready" },
+              ].map((report, index) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <FileText className="h-5 w-5 text-gray-400" />
+                    <div>
+                      <p className="font-medium">{report.name}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        Generated on {report.date}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline">{report.type}</Badge>
+                    <Badge variant={report.status === "Ready" ? "default" : "secondary"}>
+                      {report.status}
+                    </Badge>
+                    {report.status === "Ready" && (
+                      <Button size="sm" variant="ghost">
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </DashboardLayout>
-  );
-  // Apply the same card, table, and color scheme as students-management.tsx
+    </div>
+  )
 }
